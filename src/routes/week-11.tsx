@@ -67,12 +67,12 @@ function Terms({ items }: { items: string[] }) {
 
 function WeekElevenPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <header className="mb-8">
-        <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground">
+    <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <header className="mb-6 sm:mb-8">
+        <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs sm:tracking-[0.25em]">
           Module 2 · Backend Development Technologies
         </p>
-        <h1 className="mt-3 text-4xl font-bold leading-tight">
+        <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
           <span className="text-ember">Week 11</span> — Data, Routing &amp; Frontend Integration
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -83,7 +83,8 @@ function WeekElevenPage() {
         </p>
       </header>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
+
         <Section tag="Topic (c)" title="Routing and Controllers">
           <p>
             A route is a mapping of an HTTP verb plus a URL to a piece of code. Keeping that code
