@@ -23,7 +23,7 @@ export const Route = createFileRoute("/week-11")({
 
 function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background/60 p-4 font-display text-xs leading-relaxed text-foreground/90">
+    <pre className="-mx-4 mt-3 overflow-x-auto border-y border-border bg-background/60 p-4 font-display text-[11px] leading-relaxed text-foreground/90 sm:mx-0 sm:rounded-lg sm:border sm:text-xs">
       <code>{children}</code>
     </pre>
   );
@@ -39,15 +39,16 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="panel p-6">
-      <p className="font-display text-xs uppercase tracking-[0.2em] text-primary">{tag}</p>
-      <h2 className="mt-2 text-2xl font-bold">{title}</h2>
+    <section className="panel p-4 sm:p-6">
+      <p className="font-display text-[10px] uppercase tracking-[0.2em] text-primary sm:text-xs">{tag}</p>
+      <h2 className="mt-2 text-xl font-bold sm:text-2xl">{title}</h2>
       <div className="mt-4 space-y-4 text-sm leading-relaxed text-muted-foreground">
         {children}
       </div>
     </section>
   );
 }
+
 
 function Terms({ items }: { items: string[] }) {
   return (
