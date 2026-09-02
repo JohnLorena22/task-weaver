@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as Week11RouteImport } from './routes/week-11'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Week11Route = Week11RouteImport.update({
+  id: '/week-11',
+  path: '/week-11',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/week-11': typeof Week11Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/week-11': typeof Week11Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/week-11': typeof Week11Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/week-11'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/week-11'
+  id: '__root__' | '/' | '/week-11'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Week11Route: typeof Week11Route
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/week-11': {
+      id: '/week-11'
+      path: '/week-11'
+      fullPath: '/week-11'
+      preLoaderRoute: typeof Week11RouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Week11Route: Week11Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
