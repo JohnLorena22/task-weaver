@@ -200,20 +200,20 @@ function TaskManagerPage() {
           </dl>
         </section>
 
-        <section className="panel p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <section className="panel p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               GET /api/tasks
             </h2>
-            <div className="flex gap-1 rounded-md bg-secondary p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-md bg-secondary p-1 sm:flex">
               {filters.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setFilter(f.key)}
                   className={
                     filter === f.key
-                      ? "rounded px-3 py-1 text-xs font-semibold bg-primary text-primary-foreground"
-                      : "rounded px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                      ? "rounded px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground"
+                      : "rounded px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
                   }
                 >
                   {f.label}
@@ -221,6 +221,7 @@ function TaskManagerPage() {
               ))}
             </div>
           </div>
+
 
           {tasksQuery.isError && (
             <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
