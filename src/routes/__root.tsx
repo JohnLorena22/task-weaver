@@ -157,9 +157,10 @@ function RootComponent() {
         <SiteNav />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
-        <footer className="mx-auto max-w-5xl px-4 py-10 text-xs text-muted-foreground">
+        <footer className="mx-auto max-w-5xl px-4 py-8 text-xs leading-relaxed text-muted-foreground sm:px-6 sm:py-10 lg:px-8">
           CCS112 — Application Development and Emerging Technologies · Midterm, Weeks 7–11
         </footer>
+
       </div>
     </QueryClientProvider>
   );
