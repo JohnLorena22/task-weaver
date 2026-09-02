@@ -38,9 +38,14 @@ export const Route = createFileRoute("/api/tasks/$id")({
           );
         }
 
+        const patch: { title?: string; completed?: boolean; priority?: string } = {};
+        if (parsed.data.title !== undefined) patch.title = parsed.data.title;
+        if (parsed.data.completed !== undefined) patch.completed = parsed.data.completed;
+        if (parsed.data.priority !== undefined) patch.priority = parsed.data.priority;
+
         const { data, error } = await taskDb()
           .from("tasks")
-          .update(parsed.data)
+          .update(patch)
           .eq("id", id)
           .select()
           .maybeSingle();
