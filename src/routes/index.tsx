@@ -120,14 +120,14 @@ function TaskManagerPage() {
   ];
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <section className="mb-8">
-        <p className="font-display text-xs uppercase tracking-[0.25em] text-muted-foreground">
+    <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <section className="mb-6 sm:mb-8">
+        <p className="font-display text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs sm:tracking-[0.25em]">
           Module 2 · Week 11 Guided Project
         </p>
-        <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
+        <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
           <span className="text-ember">Task Manager</span>
-          <span className="block text-2xl text-muted-foreground sm:text-3xl">
+          <span className="block text-xl text-muted-foreground sm:text-2xl lg:text-3xl">
             from database to frontend
           </span>
         </h1>
@@ -139,8 +139,9 @@ function TaskManagerPage() {
         </p>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.25fr]">
-        <section className="panel h-fit p-5">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_1.25fr]">
+        <section className="panel h-fit p-4 sm:p-5">
+
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             POST /api/tasks
           </h2>
