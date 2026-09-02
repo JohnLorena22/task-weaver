@@ -244,50 +244,65 @@ function TaskManagerPage() {
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="group flex items-center gap-3 rounded-lg border border-border bg-secondary/40 px-3 py-2.5"
+                className="group flex items-start gap-3 rounded-lg border border-border bg-secondary/40 px-3 py-2.5"
               >
                 <input
                   type="checkbox"
                   checked={task.completed}
                   onChange={() => updateTask.mutate({ id: task.id, completed: !task.completed })}
                   aria-label={`Mark ${task.title} as ${task.completed ? "open" : "done"}`}
-                  className="size-4 accent-[oklch(0.66_0.19_32)]"
+                  className="mt-1 size-4 shrink-0 accent-[oklch(0.66_0.19_32)]"
                 />
-                {editingId === task.id ? (
-                  <input
-                    autoFocus
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onBlur={() => saveEdit(task.id, task.title)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveEdit(task.id, task.title);
-                      if (e.key === "Escape") setEditingId(null);
-                    }}
-                    className="flex-1 rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:border-primary"
-                  />
-                ) : (
-                  <button
-                    onDoubleClick={() => {
-                      setEditingId(task.id);
-                      setEditingTitle(task.title);
-                    }}
+
+                <div className="min-w-0 flex-1">
+                  {editingId === task.id ? (
+                    <input
+                      autoFocus
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={() => saveEdit(task.id, task.title)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEdit(task.id, task.title);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      className="w-full rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:border-primary"
+                    />
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingId(task.id);
+                        setEditingTitle(task.title);
+                      }}
+                      className={
+                        task.completed
+                          ? "w-full break-words text-left text-sm text-muted-foreground line-through"
+                          : "w-full break-words text-left text-sm"
+                      }
+                      title="Tap to rename"
+                    >
+                      {task.title}
+                    </button>
+                  )}
+                  <span
                     className={
-                      task.completed
-                        ? "flex-1 truncate text-left text-sm text-muted-foreground line-through"
-                        : "flex-1 truncate text-left text-sm"
+                      task.priority === "high"
+                        ? "mt-1.5 inline-block rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary sm:hidden"
+                        : task.priority === "normal"
+                          ? "mt-1.5 inline-block rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent sm:hidden"
+                          : "mt-1.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:hidden"
                     }
-                    title="Double-click to rename"
                   >
-                    {task.title}
-                  </button>
-                )}
+                    {priorityLabel[task.priority]}
+                  </span>
+                </div>
+
                 <span
                   className={
                     task.priority === "high"
-                      ? "rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                      ? "hidden shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary sm:inline-block"
                       : task.priority === "normal"
-                        ? "rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent"
-                        : "rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                        ? "hidden shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent sm:inline-block"
+                        : "hidden shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:inline-block"
                   }
                 >
                   {priorityLabel[task.priority]}
@@ -295,18 +310,19 @@ function TaskManagerPage() {
                 <button
                   onClick={() => deleteTask.mutate(task.id)}
                   aria-label={`Delete ${task.title}`}
-                  className="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                  className="-mr-1 shrink-0 rounded px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                 >
                   Delete
                 </button>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Double-click a title to rename it. Every action is a request to the API —
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            Tap a title to rename it. Every action is a request to the API —
             <code className="text-accent"> PATCH /api/tasks/:id</code> and
             <code className="text-accent"> DELETE /api/tasks/:id</code>.
           </p>
+
         </section>
       </div>
     </main>
