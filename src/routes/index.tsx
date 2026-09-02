@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -8,13 +9,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A working React Task Manager demo mirroring the Laravel controller, Eloquent model and Inertia page from the CCS112 Week 11 walkthrough.",
+          "A database-backed React Task Manager with a REST API, mirroring the Laravel controller, Eloquent model and Inertia page from the CCS112 Week 11 walkthrough.",
       },
       { property: "og:title", content: "Task Manager — CCS112 Laravel + Inertia + React" },
       {
         property: "og:description",
         content:
-          "Create, complete, edit and delete tasks — the same CRUD surface the Laravel + Inertia build exposes.",
+          "Create, complete, edit and delete tasks over a real REST API — the same CRUD surface the Laravel + Inertia build exposes.",
       },
     ],
   }),
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Priority = "low" | "normal" | "high";
+type Filter = "all" | "active" | "done";
 
 type Task = {
   id: number;
@@ -31,34 +33,10 @@ type Task = {
   created_at: string;
 };
 
-const STORAGE_KEY = "ccs112.tasks.v1";
-
-function seedTasks(): Task[] {
-  const now = Date.now();
-  return [
-    {
-      id: 1,
-      title: "Define /tasks route and TaskController@index",
-      priority: "high",
-      completed: true,
-      created_at: new Date(now - 86400000).toISOString(),
-    },
-    {
-      id: 2,
-      title: "Run migration for the tasks table",
-      priority: "normal",
-      completed: false,
-      created_at: new Date(now - 3600000).toISOString(),
-    },
-    {
-      id: 3,
-      title: "Render Tasks/Index through Inertia with props",
-      priority: "high",
-      completed: false,
-      created_at: new Date(now).toISOString(),
-    },
-  ];
-}
+type IndexResponse = {
+  data: Task[];
+  meta: { filter: string; total: number; open: number };
+};
 
 const priorityLabel: Record<Priority, string> = {
   low: "Low",
@@ -66,77 +44,73 @@ const priorityLabel: Record<Priority, string> = {
   high: "High",
 };
 
-type Filter = "all" | "active" | "done";
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+  if (res.status === 204) return undefined as T;
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message =
+      (body as { errors?: Record<string, string[]> }).errors?.["title"]?.[0] ??
+      (body as { message?: string }).message ??
+      `Request failed (${res.status})`;
+    throw new Error(message);
+  }
+  return body as T;
+}
 
 function TaskManagerPage() {
-  const [tasks, setTasks] = useState<Task[]>(() => seedTasks());
-  const [hydrated, setHydrated] = useState(false);
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState<Filter>("all");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<Priority>("normal");
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<Filter>("all");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setTasks(JSON.parse(raw) as Task[]);
-    } catch {
-      /* ignore malformed storage */
-    }
-    setHydrated(true);
-  }, []);
+  const tasksQuery = useQuery({
+    queryKey: ["tasks", filter],
+    queryFn: () => api<IndexResponse>(`/api/tasks?filter=${filter}`),
+  });
 
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks, hydrated]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
-  const visible = useMemo(() => {
-    const sorted = [...tasks].sort((a, b) => b.created_at.localeCompare(a.created_at));
-    if (filter === "active") return sorted.filter((t) => !t.completed);
-    if (filter === "done") return sorted.filter((t) => t.completed);
-    return sorted;
-  }, [tasks, filter]);
+  const createTask = useMutation({
+    mutationFn: (payload: { title: string; priority: Priority }) =>
+      api<{ data: Task }>("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
+    onSuccess: () => {
+      setTitle("");
+      setPriority("normal");
+      void invalidate();
+    },
+  });
 
-  const remaining = tasks.filter((t) => !t.completed).length;
+  const updateTask = useMutation({
+    mutationFn: ({ id, ...patch }: { id: number } & Partial<Task>) =>
+      api<{ data: Task }>(`/api/tasks/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+    onSuccess: invalidate,
+  });
 
-  // Mirrors TaskController@store validation: required|string|max:255
+  const deleteTask = useMutation({
+    mutationFn: (id: number) => api<void>(`/api/tasks/${id}`, { method: "DELETE" }),
+    onSuccess: invalidate,
+  });
+
+  const tasks = tasksQuery.data?.data ?? [];
+  const meta = tasksQuery.data?.meta;
+  const formError = createTask.error instanceof Error ? createTask.error.message : null;
+
   function addTask(e: React.FormEvent) {
     e.preventDefault();
-    const clean = title.trim();
-    if (!clean) return setError("The title field is required.");
-    if (clean.length > 255) return setError("The title may not be greater than 255 characters.");
-    setError(null);
-    setTasks((prev) => [
-      {
-        id: prev.reduce((max, t) => Math.max(max, t.id), 0) + 1,
-        title: clean,
-        priority,
-        completed: false,
-        created_at: new Date().toISOString(),
-      },
-      ...prev,
-    ]);
-    setTitle("");
-    setPriority("normal");
+    if (!title.trim()) return;
+    createTask.mutate({ title: title.trim(), priority });
   }
 
-  function toggle(id: number) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
-  }
-
-  function destroy(id: number) {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  }
-
-  function saveEdit(id: number) {
+  function saveEdit(id: number, original: string) {
     const clean = editingTitle.trim();
-    if (clean) {
-      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, title: clean } : t)));
-    }
     setEditingId(null);
+    if (clean && clean !== original) updateTask.mutate({ id, title: clean });
   }
 
   const filters: { key: Filter; label: string }[] = [
@@ -154,21 +128,21 @@ function TaskManagerPage() {
         <h1 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
           <span className="text-ember">Task Manager</span>
           <span className="block text-2xl text-muted-foreground sm:text-3xl">
-            from database to Inertia frontend
+            from database to frontend
           </span>
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          This live demo reproduces the CRUD surface of the Laravel build: request validation,
-          an Eloquent-style records list, and a React page component fed by props. The matching
-          Laravel + Inertia source lives in the <code className="text-accent">laravel/</code>{" "}
-          folder of this project.
+          Tasks are stored in a real database and read and written through a REST API
+          (<code className="text-accent">/api/tasks</code>) with server-side validation — so they
+          survive a reload. The equivalent Laravel + Eloquent + Inertia source lives in the{" "}
+          <code className="text-accent">laravel/</code> folder.
         </p>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.25fr]">
         <section className="panel h-fit p-5">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            POST /tasks
+            POST /api/tasks
           </h2>
           <form onSubmit={addTask} className="mt-4 space-y-3">
             <div>
@@ -198,26 +172,29 @@ function TaskManagerPage() {
                 <option value="high">High</option>
               </select>
             </div>
-            {error && <p className="text-xs text-destructive">{error}</p>}
+            {formError && <p className="text-xs text-destructive">{formError}</p>}
             <button
               type="submit"
-              className="btn-ember hover:btn-ember-hover w-full rounded-md px-4 py-2.5 text-sm"
+              disabled={createTask.isPending}
+              className="btn-ember hover:btn-ember-hover w-full rounded-md px-4 py-2.5 text-sm disabled:opacity-60"
             >
-              Add task
+              {createTask.isPending ? "Saving…" : "Add task"}
             </button>
           </form>
           <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-4 text-center">
             <div>
-              <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Total</dt>
-              <dd className="font-display text-xl">{tasks.length}</dd>
+              <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Shown</dt>
+              <dd className="font-display text-xl">{meta?.total ?? 0}</dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Open</dt>
-              <dd className="font-display text-xl text-accent">{remaining}</dd>
+              <dd className="font-display text-xl text-accent">{meta?.open ?? 0}</dd>
             </div>
             <div>
               <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Done</dt>
-              <dd className="font-display text-xl text-success">{tasks.length - remaining}</dd>
+              <dd className="font-display text-xl text-success">
+                {(meta?.total ?? 0) - (meta?.open ?? 0)}
+              </dd>
             </div>
           </dl>
         </section>
@@ -225,7 +202,7 @@ function TaskManagerPage() {
         <section className="panel p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              GET /tasks
+              GET /api/tasks
             </h2>
             <div className="flex gap-1 rounded-md bg-secondary p-1">
               {filters.map((f) => (
@@ -244,13 +221,25 @@ function TaskManagerPage() {
             </div>
           </div>
 
+          {tasksQuery.isError && (
+            <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              Could not load tasks: {(tasksQuery.error as Error).message}
+            </p>
+          )}
+
           <ul className="mt-4 space-y-2">
-            {visible.length === 0 && (
+            {tasksQuery.isPending &&
+              [0, 1, 2].map((i) => (
+                <li key={i} className="h-11 animate-pulse rounded-lg border border-border bg-secondary/40" />
+              ))}
+
+            {!tasksQuery.isPending && tasks.length === 0 && (
               <li className="rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
                 No tasks here yet.
               </li>
             )}
-            {visible.map((task) => (
+
+            {tasks.map((task) => (
               <li
                 key={task.id}
                 className="group flex items-center gap-3 rounded-lg border border-border bg-secondary/40 px-3 py-2.5"
@@ -258,7 +247,7 @@ function TaskManagerPage() {
                 <input
                   type="checkbox"
                   checked={task.completed}
-                  onChange={() => toggle(task.id)}
+                  onChange={() => updateTask.mutate({ id: task.id, completed: !task.completed })}
                   aria-label={`Mark ${task.title} as ${task.completed ? "open" : "done"}`}
                   className="size-4 accent-[oklch(0.66_0.19_32)]"
                 />
@@ -267,9 +256,9 @@ function TaskManagerPage() {
                     autoFocus
                     value={editingTitle}
                     onChange={(e) => setEditingTitle(e.target.value)}
-                    onBlur={() => saveEdit(task.id)}
+                    onBlur={() => saveEdit(task.id, task.title)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") saveEdit(task.id);
+                      if (e.key === "Enter") saveEdit(task.id, task.title);
                       if (e.key === "Escape") setEditingId(null);
                     }}
                     className="flex-1 rounded border border-input bg-background px-2 py-1 text-sm outline-none focus:border-primary"
@@ -302,7 +291,7 @@ function TaskManagerPage() {
                   {priorityLabel[task.priority]}
                 </span>
                 <button
-                  onClick={() => destroy(task.id)}
+                  onClick={() => deleteTask.mutate(task.id)}
                   aria-label={`Delete ${task.title}`}
                   className="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                 >
@@ -312,8 +301,9 @@ function TaskManagerPage() {
             ))}
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
-            Double-click a title to rename it. State persists locally, standing in for the
-            Eloquent-backed <code className="text-accent">tasks</code> table.
+            Double-click a title to rename it. Every action is a request to the API —
+            <code className="text-accent"> PATCH /api/tasks/:id</code> and
+            <code className="text-accent"> DELETE /api/tasks/:id</code>.
           </p>
         </section>
       </div>
