@@ -119,10 +119,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function SiteNav() {
   const linkClass =
-    "rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
+    "whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm";
+  const activeClass =
+    "whitespace-nowrap rounded-md bg-secondary px-2.5 py-1.5 text-xs font-semibold text-foreground sm:px-3 sm:text-sm";
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <nav className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="font-display text-sm font-bold tracking-tight">
           <span className="text-ember">CCS112</span>
           <span className="text-muted-foreground"> / midterm</span>
@@ -131,16 +133,12 @@ function SiteNav() {
           <Link
             to="/"
             className={linkClass}
-            activeProps={{ className: "rounded-md px-3 py-1.5 text-sm font-semibold text-foreground bg-secondary" }}
+            activeProps={{ className: activeClass }}
             activeOptions={{ exact: true }}
           >
             Task Manager
           </Link>
-          <Link
-            to="/week-11"
-            className={linkClass}
-            activeProps={{ className: "rounded-md px-3 py-1.5 text-sm font-semibold text-foreground bg-secondary" }}
-          >
+          <Link to="/week-11" className={linkClass} activeProps={{ className: activeClass }}>
             Week 11 Notes
           </Link>
         </div>
@@ -148,6 +146,7 @@ function SiteNav() {
     </header>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -158,9 +157,10 @@ function RootComponent() {
         <SiteNav />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
-        <footer className="mx-auto max-w-5xl px-4 py-10 text-xs text-muted-foreground">
+        <footer className="mx-auto max-w-5xl px-4 py-8 text-xs leading-relaxed text-muted-foreground sm:px-6 sm:py-10 lg:px-8">
           CCS112 — Application Development and Emerging Technologies · Midterm, Weeks 7–11
         </footer>
+
       </div>
     </QueryClientProvider>
   );
