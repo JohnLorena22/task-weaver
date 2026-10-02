@@ -11,7 +11,17 @@ function TaskList({
   deleteTask,
 }) {
   if (tasks.length === 0) {
-    return <p className="empty">No tasks yet.</p>
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">✓</div>
+
+        <h3>No tasks yet</h3>
+
+        <p>
+          Add your first task above and start getting things done.
+        </p>
+      </div>
+    )
   }
 
   return (
