@@ -4,6 +4,8 @@ import "./App.css"
 function App() {
   const [task, setTask] = useState("")
   const [tasks, setTasks] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editingText, setEditingText] = useState("")
 
   const addTask = () => {
     if (task.trim() === "") return
@@ -18,8 +20,7 @@ function App() {
     setTask("")
   }
 
-  // Mark a task as complete or incomplete
-  const toggleTask = (id) => {
+  const toggleComplete = (id) => {
     setTasks(
       tasks.map((item) =>
         item.id === id
@@ -29,9 +30,28 @@ function App() {
     )
   }
 
-  // Delete a task
   const deleteTask = (id) => {
     setTasks(tasks.filter((item) => item.id !== id))
+  }
+
+  const startEdit = (item) => {
+    setEditingId(item.id)
+    setEditingText(item.title)
+  }
+
+  const saveEdit = (id) => {
+    if (editingText.trim() === "") return
+
+    setTasks(
+      tasks.map((item) =>
+        item.id === id
+          ? { ...item, title: editingText }
+          : item
+      )
+    )
+
+    setEditingId(null)
+    setEditingText("")
   }
 
   return (
@@ -57,24 +77,51 @@ function App() {
           ) : (
             tasks.map((item) => (
               <div className="task-item" key={item.id}>
-                <label className="task-label">
+                <div className="task-content">
                   <input
                     type="checkbox"
                     checked={item.completed}
-                    onChange={() => toggleTask(item.id)}
+                    onChange={() => toggleComplete(item.id)}
                   />
 
-                  <span className={item.completed ? "completed" : ""}>
-                    {item.title}
-                  </span>
-                </label>
+                  {editingId === item.id ? (
+                    <input
+                      className="edit-input"
+                      type="text"
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                    />
+                  ) : (
+                    <span className={item.completed ? "completed" : ""}>
+                      {item.title}
+                    </span>
+                  )}
+                </div>
 
-                <button
-                  className="delete-button"
-                  onClick={() => deleteTask(item.id)}
-                >
-                  Delete
-                </button>
+                <div className="task-actions">
+                  {editingId === item.id ? (
+                    <button
+                      className="save-button"
+                      onClick={() => saveEdit(item.id)}
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      className="edit-button"
+                      onClick={() => startEdit(item)}
+                    >
+                      Edit
+                    </button>
+                  )}
+
+                  <button
+                    className="delete-button"
+                    onClick={() => deleteTask(item.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           )}
