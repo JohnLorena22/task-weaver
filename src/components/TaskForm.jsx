@@ -1,15 +1,22 @@
 function TaskForm({ task, setTask, addTask }) {
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    addTask()
+  }
+
   return (
-    <div className="task-form">
+    <form className="task-form" onSubmit={handleSubmit}>
       <input
         type="text"
-        placeholder="Enter a task..."
+        placeholder="What needs to be done?"
         value={task}
         onChange={(e) => setTask(e.target.value)}
       />
 
-      <button onClick={addTask}>Add Task</button>
-    </div>
+      <button type="submit">
+        Add Task
+      </button>
+    </form>
   )
 }
 
