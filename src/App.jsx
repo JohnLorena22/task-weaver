@@ -60,12 +60,24 @@ function App() {
     setEditingText("")
   }
 
-  // Count completed tasks
+  // =========================
+  // TASK STATISTICS
+  // =========================
+
+  const totalTasks = tasks.length
+
   const completedTasks = tasks.filter(
     (item) => item.completed
   ).length
 
-  // Decide which tasks to display
+  const pendingTasks = tasks.filter(
+    (item) => !item.completed
+  ).length
+
+  // =========================
+  // FILTER TASKS
+  // =========================
+
   let displayedTasks = tasks
 
   if (activeView === "tasks") {
@@ -123,7 +135,7 @@ function App() {
         </button>
 
         <div className="sidebar-bottom">
-          <p>Total Tasks: {tasks.length}</p>
+          <p>Total Tasks: {totalTasks}</p>
           <p>Completed: {completedTasks}</p>
         </div>
 
@@ -143,8 +155,48 @@ function App() {
           </h2>
 
           <p className="subtitle">
-            {displayedTasks.length} tasks
+            {activeView === "dashboard"
+              ? "A simple overview of your tasks"
+              : `${displayedTasks.length} tasks`}
           </p>
+
+          {/* DASHBOARD STATISTICS */}
+
+          {activeView === "dashboard" && (
+            <div className="stats">
+
+              <div className="stat-card">
+                <span className="stat-label">
+                  Total Tasks
+                </span>
+
+                <strong className="stat-number">
+                  {totalTasks}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-label">
+                  To Do
+                </span>
+
+                <strong className="stat-number">
+                  {pendingTasks}
+                </strong>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-label">
+                  Completed
+                </span>
+
+                <strong className="stat-number">
+                  {completedTasks}
+                </strong>
+              </div>
+
+            </div>
+          )}
 
           <TaskForm
             task={task}
