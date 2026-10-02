@@ -1,6 +1,9 @@
 import { useState } from "react"
 import "./App.css"
 
+import TaskForm from "./components/TaskForm"
+import TaskList from "./components/TaskList"
+
 function App() {
   const [task, setTask] = useState("")
   const [tasks, setTasks] = useState([])
@@ -60,72 +63,22 @@ function App() {
         <h1>Task Manager</h1>
         <p className="subtitle">Manage your tasks easily</p>
 
-        <div className="task-form">
-          <input
-            type="text"
-            placeholder="Enter a task..."
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-          />
+        <TaskForm
+          task={task}
+          setTask={setTask}
+          addTask={addTask}
+        />
 
-          <button onClick={addTask}>Add Task</button>
-        </div>
-
-        <div className="task-list">
-          {tasks.length === 0 ? (
-            <p className="empty">No tasks yet.</p>
-          ) : (
-            tasks.map((item) => (
-              <div className="task-item" key={item.id}>
-                <div className="task-content">
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => toggleComplete(item.id)}
-                  />
-
-                  {editingId === item.id ? (
-                    <input
-                      className="edit-input"
-                      type="text"
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                    />
-                  ) : (
-                    <span className={item.completed ? "completed" : ""}>
-                      {item.title}
-                    </span>
-                  )}
-                </div>
-
-                <div className="task-actions">
-                  {editingId === item.id ? (
-                    <button
-                      className="save-button"
-                      onClick={() => saveEdit(item.id)}
-                    >
-                      Save
-                    </button>
-                  ) : (
-                    <button
-                      className="edit-button"
-                      onClick={() => startEdit(item)}
-                    >
-                      Edit
-                    </button>
-                  )}
-
-                  <button
-                    className="delete-button"
-                    onClick={() => deleteTask(item.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <TaskList
+          tasks={tasks}
+          editingId={editingId}
+          editingText={editingText}
+          setEditingText={setEditingText}
+          toggleComplete={toggleComplete}
+          startEdit={startEdit}
+          saveEdit={saveEdit}
+          deleteTask={deleteTask}
+        />
       </div>
     </div>
   )
