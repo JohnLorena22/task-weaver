@@ -18,6 +18,22 @@ function App() {
     setTask("")
   }
 
+  // Mark a task as complete or incomplete
+  const toggleTask = (id) => {
+    setTasks(
+      tasks.map((item) =>
+        item.id === id
+          ? { ...item, completed: !item.completed }
+          : item
+      )
+    )
+  }
+
+  // Delete a task
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((item) => item.id !== id))
+  }
+
   return (
     <div className="app">
       <div className="container">
@@ -41,7 +57,24 @@ function App() {
           ) : (
             tasks.map((item) => (
               <div className="task-item" key={item.id}>
-                <span>{item.title}</span>
+                <label className="task-label">
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => toggleTask(item.id)}
+                  />
+
+                  <span className={item.completed ? "completed" : ""}>
+                    {item.title}
+                  </span>
+                </label>
+
+                <button
+                  className="delete-button"
+                  onClick={() => deleteTask(item.id)}
+                >
+                  Delete
+                </button>
               </div>
             ))
           )}
