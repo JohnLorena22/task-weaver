@@ -81,28 +81,28 @@ function App() {
         <nav className="sidebar-nav">
 
             <button
-  className={`nav-item ${activeView === "dashboard" ? "active" : ""}`}
-  onClick={() => setActiveView("dashboard")}
->
-  <span>⌂</span>
-  Dashboard
-</button>
+              className={`nav-item ${activeView === "dashboard" ? "active" : ""}`}
+             onClick={() => setActiveView("dashboard")}
+            >
+           <span>⌂</span>
+              Dashboard
+            </button>
 
-<button
-  className={`nav-item ${activeView === "tasks" ? "active" : ""}`}
-  onClick={() => setActiveView("tasks")}
->
-  <span>☷</span>
-  My Tasks
-</button>
+            <button
+               className={`nav-item ${activeView === "tasks" ? "active" : ""}`}
+               onClick={() => setActiveView("tasks")}
+            >
+            <span>☷</span>
+                 My Tasks
+            </button>
 
-<button
-  className={`nav-item ${activeView === "completed" ? "active" : ""}`}
-  onClick={() => setActiveView("completed")}
->
-  <span>✓</span>
-  Completed
-</button>
+            <button
+                className={`nav-item ${activeView === "completed" ? "active" : ""}`}
+                 onClick={() => setActiveView("completed")}
+            >
+              <span>✓</span>
+               Completed
+            </button>
 
         </nav>
 
@@ -171,14 +171,20 @@ function App() {
           <div className="section-header">
 
             <div>
-              <h2>Today</h2>
-              <p>{tasks.length} tasks</p>
+              <h2>
+              {activeView === "dashboard"
+               ? "Today"
+               : activeView === "tasks"
+                ? "My Tasks"
+               : "Completed"}
+              </h2>
+              <p>{displayedTasks.length} tasks</p>
             </div>
 
           </div>
 
           <TaskList
-            tasks={tasks}
+            tasks={displayedTasks}
             editingId={editingId}
             editingText={editingText}
             setEditingText={setEditingText}
