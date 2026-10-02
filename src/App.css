@@ -389,3 +389,99 @@ input {
     flex: 1;
   }
 }
+
+
+/* =========================
+   DASHBOARD STATISTICS
+   ========================= */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-label {
+  color: #78716c;
+  font-size: 13px;
+}
+
+.stat-number {
+  color: #1c1917;
+  font-size: 27px;
+  font-weight: 500;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+.empty-state {
+  padding: 55px 25px;
+
+  background: #ffffff;
+  border: 1px dashed #d6d3d1;
+  border-radius: 10px;
+
+  text-align: center;
+}
+
+.empty-icon {
+  width: 42px;
+  height: 42px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ebe9e4;
+  color: #78716c;
+
+  font-size: 18px;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px;
+
+  color: #44403c;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.empty-state p {
+  margin: 0;
+
+  color: #a8a29e;
+  font-size: 14px;
+}
+
+/* =========================
+   MOBILE STATISTICS
+   ========================= */
+
+@media (max-width: 700px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+}
+
