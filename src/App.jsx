@@ -4,8 +4,6 @@ import "./App.css"
 import TaskForm from "./components/TaskForm"
 import TaskList from "./components/TaskList"
 
-import { getTasks } from "./services/taskApi"
-
 function App() {
   const [task, setTask] = useState("")
   const [tasks, setTasks] = useState([])
@@ -14,173 +12,171 @@ function App() {
   const [editingText, setEditingText] = useState("")
 
   const [activeView, setActiveView] = useState("dashboard")
-  
-useEffect(() => {
-  getTasks()
-    .then((data) => {
-      console.log("TASKS FROM LARAVEL:", data)
+  const API_URL = "http://127.0.0.1:8000/api/tasks"
 
-      const formattedTasks = data.map((item) => ({
-        ...item,
-        completed: item.status === "completed",
-      }))
+  useEffect(() => {
+    fetch(API_URL)
+      .then((response) => response.json())
+      .then((data) => {
+        const formattedTasks = data.map((item) => ({
+          ...item,
+          completed: item.status === "completed",
+        }))
 
-      setTasks(formattedTasks)
-    })
-    .catch((error) => {
-      console.error("Error fetching tasks:", error)
-    })
-}, [])
+        setTasks(formattedTasks)
+      })
+      .catch((error) => {
+        console.error("Error fetching tasks:", error)
+      })
+  }, [])
 
-  // ADD TASK 
+  // ADD TASK
   const addTask = async () => {
-  if (task.trim() === "") return
+    if (task.trim() === "") return
 
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: task,
-        description: "",
-        status: "pending",
-        due_date: null,
-      }),
-    })
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: task,
+          description: "",
+          status: "pending",
+          due_date: null,
+        }),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to add task")
+      if (!response.ok) {
+        throw new Error("Failed to add task")
+      }
+
+      const data = await response.json()
+
+      const newTask = {
+        ...data,
+        completed: data.status === "completed",
+      }
+
+      setTasks([...tasks, newTask])
+      setTask("")
+    } catch (error) {
+      console.error("Error adding task:", error)
     }
-
-    const data = await response.json()
-
-    const newTask = {
-      ...data,
-      completed: data.status === "completed",
-    }
-
-    setTasks([...tasks, newTask])
-    setTask("")
-  } catch (error) {
-    console.error("Error adding task:", error)
   }
-}
 
   // TOGGLE COMPLETE
   const toggleComplete = async (id) => {
-  const currentTask = tasks.find((item) => item.id === id)
+    const currentTask = tasks.find((item) => item.id === id)
 
-  if (!currentTask) return
+    if (!currentTask) return
 
-  const newStatus =
-    currentTask.completed ? "pending" : "completed"
+    const newStatus =
+      currentTask.completed ? "pending" : "completed"
 
-  try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: currentTask.title,
-        description: currentTask.description || "",
-        status: newStatus,
-        due_date: currentTask.due_date || null,
-      }),
-    })
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: currentTask.title,
+          description: currentTask.description || "",
+          status: newStatus,
+          due_date: currentTask.due_date || null,
+        }),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to update task status")
-    }
+      if (!response.ok) {
+        throw new Error("Failed to update task status")
+      }
 
-    const data = await response.json()
+      const data = await response.json()
 
-    const updatedTask = {
-      ...data.task,
-      completed: data.task.status === "completed",
-    }
+      const updatedTask = {
+        ...data.task,
+        completed: data.task.status === "completed",
+      }
 
-    setTasks(
-      tasks.map((item) =>
-        item.id === id ? updatedTask : item
+      setTasks(
+        tasks.map((item) =>
+          item.id === id ? updatedTask : item
+        )
       )
-    )
-  } catch (error) {
-    console.error("Error updating task status:", error)
-  }
-}
-
-  // DELETE TASK 
-  const deleteTask = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to delete task")
+    } catch (error) {
+      console.error("Error updating task status:", error)
     }
-
-    setTasks(tasks.filter((item) => item.id !== id))
-  } catch (error) {
-    console.error("Error deleting task:", error)
   }
-}
+
+  // DELETE TASK
+  const deleteTask = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete task")
+      }
+
+      setTasks(tasks.filter((item) => item.id !== id))
+    } catch (error) {
+      console.error("Error deleting task:", error)
+    }
+  }
 
   const startEdit = (item) => {
     setEditingId(item.id)
     setEditingText(item.title)
   }
 
-  //EDIT TASK 
+  // EDIT TASK
   const saveEdit = async (id) => {
-  if (editingText.trim() === "") return
+    if (editingText.trim() === "") return
 
-  try {
-    const currentTask = tasks.find((item) => item.id === id)
+    try {
+      const currentTask = tasks.find((item) => item.id === id)
 
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: editingText,
-        description: currentTask.description || "",
-        status: currentTask.completed ? "completed" : "pending",
-        due_date: currentTask.due_date || null,
-      }),
-    })
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: editingText,
+          description: currentTask.description || "",
+          status: currentTask.completed ? "completed" : "pending",
+          due_date: currentTask.due_date || null,
+        }),
+      })
 
-    if (!response.ok) {
-      throw new Error("Failed to update task")
-    }
+      if (!response.ok) {
+        throw new Error("Failed to update task")
+      }
 
-    const data = await response.json()
+      const data = await response.json()
 
-    const updatedTask = {
-      ...data.task,
-      completed: data.task.status === "completed",
-    }
+      const updatedTask = {
+        ...data.task,
+        completed: data.task.status === "completed",
+      }
 
-    setTasks(
-      tasks.map((item) =>
-        item.id === id ? updatedTask : item
+      setTasks(
+        tasks.map((item) =>
+          item.id === id ? updatedTask : item
+        )
       )
-    )
 
-    setEditingId(null)
-    setEditingText("")
-  } catch (error) {
-    console.error("Error updating task:", error)
-  }
+      setEditingId(null)
+      setEditingText("")
+    } catch (error) {
+      console.error("Error updating task:", error)
+    }
   }
 
-  // =========================
   // TASK STATISTICS
-  // =========================
 
   const totalTasks = tasks.length
 
@@ -192,9 +188,7 @@ useEffect(() => {
     (item) => !item.completed
   ).length
 
-  // =========================
   // FILTER TASKS
-  // =========================
 
   let displayedTasks = tasks
 
